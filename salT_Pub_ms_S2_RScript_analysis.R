@@ -1,5 +1,5 @@
-#Supplemental section 2
-#R script for Manuscript: "Childhood ecology influences salivary testosterone, pubertal age and stature of Bangladeshi UK migrant men"
+#Supplemental section 4
+#R script for Manuscript: "Childhood ecology influences salivary testosterone and pubertal age of Bangladeshi UK migrant men", Magid, K. et.al. 2018
 
 #Packages used in analysis----------------------------------------------------------------------------------------------------------------------------
 library(multcomp)
@@ -1104,7 +1104,7 @@ salt.lsm.plt +
   theme(legend.key=element_blank()) +
   theme(axis.text = element_text(size = rel(1.5))) +
   theme(axis.title = element_text(size = rel(1.5))) +
-  theme(legend.text = element_text(size = rel(1.5)))
+  theme(legend.text = element_text(size = rel(1.35)))
 
 ##To paste into figure legend
 # paste(sprintf("%.3f", salt.lsm.data$lsmeans[1:5]),", 95%CI=", paste(round(as.numeric(salt.lsm.data$lower.CL[1:5]),3), ", ", round(as.numeric(salt.lsm.data$upper.CL[1:5]),3), sep=""),sep="")
@@ -1127,6 +1127,9 @@ ggplot(data = repro.plt.data) +
   theme(legend.text = element_text(size = rel(1.5))) +
   theme(legend.position = c(.9, .9)) +
   guides(size=FALSE, fill=FALSE, alpha=F, shape = guide_legend(override.aes = list(size = 5))) +
+  scale_shape_manual(breaks=c("Birth-9y", "9-19y", ">19y"),
+                     labels=c("Birth-9y", "9-19y", ">19y"),
+                     values=c(16,15,17)) +
   ylab("z-Testosterone (log)") +
   xlab("Age at migration to the UK (years)") 
 #caption (not used)
@@ -1142,7 +1145,92 @@ confint(lm(z.log.meanS1S3D1D2~z.mssbmi+z.log.age+relevel(repro.plt.data$age.8.19
 tapply(repro.plt.data$z.bmi, repro.plt.data$age.8.19.mig, summary)
 summary(repro.plt.data$age.8.19.mig)
 
-#Figure 3. To visualise differences in morning salT, age at recruitment not adjusted----
+
+#Figure 3.Scatterplot of recalled age at puberty by age at migration----
+# Map group to point shape, and use larger points
+pub.mig.2ng.plt <- ggplot(data=subset(repro.data, residence19pub=="Adult migrants" | residence19pub=="Child migrants"), aes(x=AgeMigUK, y=pub.compos, group=residence19pub, shape=residence19pub, colour=residence19pub)) 
+pub.mig.2ng.plt +
+  geom_point(size= 4) +
+  geom_smooth(method = "lm", se = T, show.legend=F) +
+  labs(title = element_blank()) +
+  theme_minimal() + 
+  theme(axis.text = element_text(size = rel(2))) +
+  theme(axis.title = element_text(size = rel(2))) +
+  theme(legend.text = element_text(size = rel(1.5))) +
+  theme(legend.position = c(.8, .9)) + 
+  theme(legend.title = element_blank()) +
+  theme(legend.key=element_blank()) +
+  guides(shape = guide_legend(override.aes = list(size = rel(4)))) +
+  scale_shape_manual(breaks=c("Adult migrants", "Child migrants"),
+                     labels=c("Adult migrants", "Child migrants"),
+                     values=c(17,15)) +
+  scale_colour_manual(breaks=c("Adult migrants", "Child migrants"),
+                     labels=c("Adult migrants", "Child migrants"),
+                     values=c("#619CFF", "#F8766D")) +
+  labs(x="Age at migration (years)", y="Composite recalled age of puberty (years)")
+
+#Figure 4a. secular trends in height--------
+agerec.height.plt <- ggplot(data = repro.data) + 
+  geom_point(mapping = aes(x = AgeRecruit, y = z.height, colour = ukbd.born.adu, shape = residence19pub), size=4) +
+  geom_smooth(aes(x = AgeRecruit, y = z.height, colour = ukbd.born.adu, linetype = ukbd.born.adu), method = "lm", se = T) +
+  theme_classic() +
+  theme(legend.title = element_blank()) +
+  theme(legend.key=element_blank()) +
+  theme(axis.text = element_text(size = rel(2))) +
+  theme(axis.title = element_text(size = rel(2.2))) +
+  theme(legend.text = element_text(size = rel(1.5))) +
+  theme(legend.position = c(.505, .9)) +
+  theme(legend.box = "horizontal") +
+  guides(size=FALSE, fill=FALSE, alpha=F) + guides(shape = guide_legend(override.aes = list(fill=NA))) +
+  scale_shape_discrete(name  ="Residence group",
+                       breaks=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
+                       labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees")) +
+  scale_colour_manual(name  ="Residence group",
+                      breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
+                      labels=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
+                      values=c("#F8766D", "#619CFF", "#00BA38")) +
+  scale_linetype_discrete(name  ="Residence group",
+                          breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
+                          labels=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh")) +
+  ylab("z-standing height") +
+  xlab("Age at recruitment (years)")
+
+#for figure legend: height by age regression coefficients:
+# summary(lm(z.height~z.log.age, data = subset(repro.data, residence19pub=="Child migrants")))
+# confint(lm(z.height~z.log.age, data = subset(repro.data, residence19pub=="Child migrants")))
+# height.bdadu.sres
+# confint(height.bdadu.res)
+# height.ukadu.sres
+# confint(height.ukadu.res)
+
+#Figure 4b. age at migration trends in height
+agemig.height.plt <- ggplot(data = subset(repro.data, residence19pub=="Child migrants"|residence19pub=="Adult migrants")) + 
+  geom_point(mapping = aes(x = AgeMigUK, y = z.height, colour = ukbd.born.adu, shape = residence19pub), size=4) +
+  geom_smooth(aes(x = AgeMigUK, y = z.height, colour = ukbd.born.adu, linetype = ukbd.born.adu), method = "lm", se = T) +
+  theme_classic() +
+  theme(legend.title = element_blank()) +
+  theme(legend.key=element_blank()) +
+  theme(axis.title.y = element_blank())+
+  theme(axis.text = element_text(size = rel(2))) +
+  theme(axis.title = element_text(size = rel(2.2))) +
+  theme(legend.text = element_text(size = rel(1.5))) +
+  theme(legend.position = c(.75, .9)) +
+  guides(size=FALSE, fill=FALSE, alpha=F) + guides(shape = guide_legend(override.aes = list(fill=NA))) +
+  scale_shape_manual(name  ="Residence group",
+                     breaks=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
+                     labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
+                     values=c(17,15)) +
+  scale_colour_manual(name  ="Residence group",
+                      breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
+                      labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
+                      values=c("#F8766D", "#619CFF")) +
+  scale_linetype_discrete(name  ="Residence group",
+                          breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
+                          labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees")) +
+  ylab("z-standing height") +
+  xlab("Age at migration to the UK (years)")
+
+#Supplemental Figure 1. To visualise differences in morning salT, age at recruitment not adjusted----
 ggplot(data = repro.data) + 
   geom_point(mapping = aes(x = AgeRecruit, y = z.log.meanS1D1D2, colour = residence19pub, shape = residence19pub), size=2.75) +
   geom_smooth(aes(x = AgeRecruit, y = z.log.meanS1D1D2, colour = residence19pub, linetype = residence19pub), method = "lm", se = T) +
@@ -1165,26 +1253,7 @@ ggplot(data = repro.data) +
                           labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees")) +
   ylab("z-Testosterone (log)") +
   xlab("Age at recruitment, years")
-
-#Figure 4.Scatterplot of recalled age at puberty by age at migration----
-# Map group to point shape, and use larger points
-pub.mig.2ng.plt <- ggplot(data=subset(repro.data, residence19pub=="Adult migrants" | residence19pub=="Child migrants"), aes(x=AgeMigUK, y=pub.compos, group=residence19pub, shape=residence19pub, colour=residence19pub)) 
-pub.mig.2ng.plt +
-  geom_point(size= 4) +
-  geom_smooth(method = "lm", se = T, show.legend=F) +
-  labs(title = element_blank()) +
-  theme_minimal() + 
-  theme(axis.text = element_text(size = rel(2))) +
-  theme(axis.title = element_text(size = rel(2))) +
-  theme(legend.text = element_text(size = rel(1.5))) +
-  theme(legend.position = c(.8, .9)) + 
-  theme(legend.title = element_blank()) +
-  theme(legend.key=element_blank()) +
-  guides(shape = guide_legend(override.aes = list(size = rel(4)))) +
-  scale_fill_discrete(breaks = rev(levels(repro.data$residence19pub))) +
-  labs(x="Age at migration (years)", y="Composite recalled age of puberty (years)")
-
-#figure S1. plot of age 8 data number of years in UK-------
+#supplemental figure 2. plot of age 8 data number of years in UK-------
 #from result: y19c.nyu.2salt.mssbmi.res
 
 #establish reference grid for each sample time
@@ -1241,67 +1310,7 @@ lsm.nyu.CHI.plt <- ggplot(salt.lsm.data,
   scale_color_manual(values = c("blue", "red"))
 lsm.nyu.CHI.plt
 
-#Figure S2a. secular trends in height--------
-agerec.height.plt <- ggplot(data = repro.data) + 
-  geom_point(mapping = aes(x = AgeRecruit, y = z.height, colour = ukbd.born.adu, shape = residence19pub), size=2.75) +
-  geom_smooth(aes(x = AgeRecruit, y = z.height, colour = ukbd.born.adu, linetype = ukbd.born.adu), method = "lm", se = T) +
-  theme_classic() +
-  theme(legend.title = element_blank()) +
-  theme(legend.key=element_blank()) +
-  theme(axis.text = element_text(size = rel(2))) +
-  theme(axis.title = element_text(size = rel(2.2))) +
-  theme(legend.text = element_text(size = rel(1.2))) +
-  theme(legend.position = c(.6, .9)) +
-  theme(legend.box = "horizontal") +
-  guides(size=FALSE, fill=FALSE, alpha=F) + guides(shape = guide_legend(override.aes = list(fill=NA))) +
-  scale_shape_discrete(name  ="Residence group",
-                       breaks=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
-                       labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees")) +
-  scale_colour_manual(name  ="Residence group",
-                        breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
-                        labels=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
-                      values=c("#619CFF", "#00BA38", "#F8766D")) +
-  scale_linetype_discrete(name  ="Residence group",
-                          breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
-                          labels=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh")) +
-  ylab("z-standing height") +
-  xlab("Age at recruitment (years)")
 
-#for figure legend: height by age regression coefficients:
-# summary(lm(z.height~z.log.age, data = subset(repro.data, residence19pub=="Child migrants")))
-# confint(lm(z.height~z.log.age, data = subset(repro.data, residence19pub=="Child migrants")))
-# height.bdadu.sres
-# confint(height.bdadu.res)
-# height.ukadu.sres
-# confint(height.ukadu.res)
-
-#age at migration trends in height
-agemig.height.plt <- ggplot(data = subset(repro.data, residence19pub=="Child migrants"|residence19pub=="Adult migrants")) + 
-  geom_point(mapping = aes(x = AgeMigUK, y = z.height, colour = ukbd.born.adu, shape = residence19pub), size=2.75) +
-  geom_smooth(aes(x = AgeMigUK, y = z.height, colour = ukbd.born.adu, linetype = ukbd.born.adu), method = "lm", se = T) +
-  theme_classic() +
-  theme(legend.title = element_blank()) +
-  theme(legend.key=element_blank()) +
-  theme(axis.title.y = element_blank())+
-  theme(axis.text = element_text(size = rel(2))) +
-  theme(axis.title = element_text(size = rel(2.2))) +
-  theme(legend.text = element_text(size = rel(1.2))) +
-  theme(legend.position = c(.75, .9)) +
-  guides(size=FALSE, fill=FALSE, alpha=F) + guides(shape = guide_legend(override.aes = list(fill=NA))) +
-  scale_shape_manual(name  ="Residence group",
-                       breaks=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
-                       labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
-                     values=c(17,15)) +
-  scale_colour_manual(name  ="Residence group",
-                        breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
-                        labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees"),
-                      values=c("#619CFF", "#F8766D")) +
-  scale_linetype_discrete(name  ="Residence group",
-                          breaks=c("Migrated in childhood", "Reached adulthood in UK", "Reached adulthood in UK", "Reached adulthood in Bangladesh", "Reached adulthood in Bangladesh"),
-                          labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees")) +
-  ylab("z-standing height") +
-  xlab("Age at migration to the UK (years)")
-#for figure legend
 
 
 
@@ -1817,3 +1826,992 @@ height.agemig.agerec.chi.tab <- stargazer(height.agemig.agerec.chi.res,
                                        single.row = TRUE, 
                                        model.numbers=F
 )
+
+#SUPPLEMENTAL ANALYSES OF <40y age at recruitment subsets--------
+
+#Descriptives: 
+#age differences between residence groups <40y at recruitment, split at age 19
+age.40a.res <- lm(AgeRecruit~residence19pub, data=age40a.data)
+age.40a.sres <- summary(age.40a.res)
+##Second generation and adult migrants significantly different from sedentees (ADU older, 2NG younger). EUR not different from SED
+tapply()
+#post-hoc analysis
+age.40a.res.ph <- summary(glht(age.40a.res, linfct=mcp(residence19pub="Tukey")))
+## Age: ADU > CHI, 2NG; EUR > 2NG: CHI > 2NG 
+##Age not diff between EUR and CHI
+
+#within migrants, does age at migration correlate with age at recruitment? 
+#In adult migrants
+cor.test(subset(age40a.data, residence19pub=="Adult migrants")$z.log.age, as.vector(scale(log(subset(age40a.data, residence19pub=="Adult migrants")$AgeMigUK))))
+#no indication of correlation between age at recruitment and age at migration in Adult migrants
+#n.s. correlation:
+cor.test(subset(age40a.data, residence19pub=="Child migrants")$AgeRecruit, as.vector(scale(log(subset(age40a.data, residence19pub=="Child migrants")$AgeMigUK))))
+#correlated, suggests the effects of peak migration.
+
+#bmi differences between residence groups
+bmi.40a.res <- lm(BMI~residence19pub, data=age40a.data)
+bmi.40a.sres <- summary(bmi.40a.res)
+##All migrant groups significantly different from sedentees (all higher).
+#post-hoc analysis
+bmi.40a.res.ph <- summary(glht(bmi.40a.res, linfct=mcp(residence19pub="Tukey")))
+##No differences in BMI bewteen men resident in the UK
+
+#height differences between residence groups, split at age 19
+height.40a.res <- lm(Height~residence19pub, data=age40a.data)
+height.40a.sres <- summary(height.40a.res)
+confint(height.40a.res)
+hist(age40a.data$Height)
+##all but adult males are taller than sedentees.
+#post-hoc analysis
+height.40a.res.ph <- summary(glht(height.40a.res, linfct=mcp(residence19pub="Tukey")))
+confint(height.40a.res.ph)
+summary(model.frame(height.40a.res))
+##EUR>2NG=CHI=ADU. 2NG>ADU Europeans taller than all other groups.
+
+#height differences between residence groups, split at age 19, adjusting for secular trend with age at recruitment
+height.age.40a.res <- lm(z.height~z.log.age+residence19pub, data=age40a.data)
+height.age.40a.sres <- summary(height.age.40a.res)
+##adjusting for age, all groups except ADU are taller than sedentees.
+#post-hoc analysis
+height.age.40a.res.ph <- summary(glht(height.age.40a.res, linfct=mcp(residence19pub="Tukey")))
+##EUR>2NG=CHI=ADU. 2NG>ADU Europeans taller than all other groups.
+
+#do groups differ from sedentees in their relationship between height and age (examine interaction between age at recruitment and height)
+height.ageint.40a.res <- lm(z.height~z.log.age*residence19pub, data=age40a.data)
+height.ageint.40a.sres <- summary(height.ageint.40a.res)
+confint(height.ageint.40a.res)
+summary(model.frame(height.ageint.40a.res))
+##no interactions effects between height and residence group.
+
+#secular trends in height of men who shared same childhood ecology?
+height.bdadu.40a.res <- lm(z.height~z.log.age, data=subset(age40a.data, ukbd.born.adu=="Reached adulthood in Bangladesh"))
+height.bdadu.40a.sres <- summary(height.bdadu.40a.res)
+confint(height.bdadu.40a.res)
+height.ukadu.40a.res <- lm(z.height~z.log.age, data=subset(age40a.data, ukbd.born.adu=="Reached adulthood in UK"))
+height.ukadu.40a.sres <- summary(height.ukadu.40a.res)
+confint(height.ukadu.40a.res)
+##in both groups, no evidence of secular trend in height.
+
+#weight differences between residence groups, split at age 19
+weight.40a.res <- lm(Weight~residence19pub, data=age40a.data)
+weight.40a.sres <- summary(weight.40a.res)
+##all groups are heavier than sedentees.
+#post-hoc analysis
+weight.40a.res.ph <- summary(glht(weight.40a.res, linfct=mcp(residence19pub="Tukey")))
+##No difference between all UK resident groups
+
+#is there a secular trend/age effect on recalled age at puberty?
+pub.40a.res <- lm(z.pub.compos~z.log.age, data=age40a.data)
+pub.40a.sres <- summary(pub.40a.res)
+confint(pub.40a.res)
+##overall, older men recall age at puberty later. This may be secular trend, systematic recall bias or developmental effect
+pub.bdadu.40a.res <- lm(z.pub.compos~z.log.age, data=subset(age40a.data, ukbd.born.adu=="Reached adulthood in Bangladesh"))
+pub.bdadu.40a.sres <- summary(pub.bdadu.40a.res)
+confint(pub.bdadu.40a.res)
+pub.ukadu.40a.res <- lm(z.pub.compos~z.log.age, data=subset(age40a.data, ukbd.born.adu=="Reached adulthood in UK"))
+pub.ukadu.40a.sres <- summary(pub.ukadu.40a.res)
+#within both groups sharing similar childhood conditions, no secular trend or a systematic recall bias.
+
+#Hypot 1.1a SalT by residence: sd units (log)age and bmi as covariates under 40 only-------
+res.2salt.40a.res <- lapply(z.log.age40a.2salt, y=age40a.data$residence19pub, db=age40a.data, age.bmi.lm)
+res.2salt.40a.sres <- lapply(res.2salt.40a.res, summary)
+## for Wake and Bed samples CHI and 2NG <40 salT is higher compared to SED
+## Contrast with 1.1. Waking ADU salT is non-sig compared to SED, for Bed salT nearlly sig higher p=0.07; BMI nonsig. covariate
+
+#for post-hoc multiple comparison Tukey correction of all-pair multiple comparison
+res.salt1.40a.res.ph <- summary(glht(res.2salt.40a.res$z.log.meanS1D1D2, linfct=mcp(y="Tukey")))
+## Wake: CHI > ADU; 2NG > ADU; CHI > EUR.
+##contrast with 1.1.ph: CHI is higher than EUR, 2NG n.s.
+res.salt3.40a.res.ph <- summary(glht(res.2salt.40a.res$z.log.meanS3D1D2, linfct=mcp(y="Tukey")))
+#Bed: No other sig ph diffs
+
+#Hypot 1.2a age at migration "z.AgeMigUK" as continuous predictor after adjusting for number of years in uk "nyu" and age at migration regressions in all migs-----------
+nyu.amu.2salt.40a.res <- lapply(z.log.age40a.2salt, y=age40a.data$z.AgeMigUK, db=age40a.data, nyu.bmi.lm)
+nyu.amu.2salt.40a.sres <- lapply(nyu.amu.2salt.40a.res, summary)
+lapply(nyu.amu.2salt.40a.res, confint)
+#vif(nyu.amu.2salt.res$z.log.meanS1D1D2)
+##Number of years in UK and age of migration significant negative predictors of evening, but not waking salivary T for all migrants <40
+##Contrast with 1.2: waking salivary T n.s. affected by age at migration for all migrants <40
+
+#Hypot 4.1.1a <40 age at recruitment is continuous predictor of salivary testosterone across all populations (untransformed for comparison to other published declines)-----
+agerec.2salt.ut.40a.res <- lapply(unt.40a.2salt, db=age40a.data, agerec.lm)
+agerec.2salt.ut.40a.sres <- lapply(agerec.2salt.ut.40a.res, summary)
+agerec.2salt.ut.40a.ci <- lapply(agerec.2salt.ut.40a.res, confint)
+agerec.wksalt.40a.n <- length(resid(agerec.2salt.ut.40a.res$MeanS1D1D2))
+agerec.bdsalt.40a.n <- length(resid(agerec.2salt.ut.40a.res$MeanS3D1D2))
+##sig. negative decline in wake salT of 1.56 pg/mL per year, sig. negative decline in bed salT of 1.61 pg/mL per year. 
+
+#also applying transformed data, <40y at recruitment
+agerec.2salt.40a.res <- lapply(z.log.age40a.2salt, db=age40a.data, function(x, db){
+  lm(x~z.log.age, data=db)	
+})
+agerec.2salt.40a.sres <- lapply(agerec.2salt.40a.res, summary)
+agerec.2salt.40a.ci <- lapply(agerec.2salt.40a.res, confint)
+##note z.log.age at recruitment is not sig. for Waking (p=0.053) with z.trans values when restricting to <40y at recruitment
+
+#Hypot 4.1.2a <40 age at recruitment is continuous predictor of salivary testosterone across all populations, including bmi as a covaraite (untransformed for comparison to other published declines)-----
+age.bmi.2salt.ut.40a.res <- lapply(unt.40a.2salt, db=age40a.data, agerec.bmi.lm)
+age.bmi.2salt.ut.40a.sres <- lapply(age.bmi.2salt.ut.40a.res, summary)
+age.bmi.2salt.ut.40a.ci <- lapply(age.bmi.2salt.ut.40a.res, confint)
+age.bmi.wksalt.40a.n <- length(resid(age.bmi.2salt.ut.40a.res$MeanS1D1D2))
+age.bmi.bdsalt.40a.n <- length(resid(age.bmi.2salt.ut.40a.res$MeanS3D1D2))
+##adjusting for BMI, sig. negative decline in wake salT of 2.27 (-3.87, -0.68) pg/mL per year, sig. negative decline in bed salT of 1.82 (-3.14, -0.513) pg/mL per year.
+
+#applying transformed data with bmi, <40y at recruitment
+agerec.bmi.2salt.40a.res <- lapply(z.log.age40a.2salt, db=age40a.data, function(x, db){
+  lm(x~z.log.age+z.bmi, data=db)	
+})
+agerec.bmi.2salt.40a.sres <- lapply(agerec.bmi.2salt.40a.res, summary)
+agerec.bmi.2salt.40a.ci <- lapply(agerec.bmi.2salt.40a.res, confint)
+##z.log.age and z.bmi sig. for both sample times
+
+#Hypot 4.1.2b >40 age at recruitment is continuous predictor of salivary testosterone across all populations, including bmi as a covaraite (untransformed for comparison to other published declines)-----
+age.bmi.2salt.ut.40b.res <- lapply(unt.40b.2salt, db=age40b.data, agerec.bmi.lm)
+age.bmi.2salt.ut.40b.sres <- lapply(age.bmi.2salt.ut.40b.res, summary)
+age.bmi.2salt.ut.40b.ci <- lapply(age.bmi.2salt.ut.40b.res, confint)
+age.bmi.wksalt.40b.n <- length(resid(age.bmi.2salt.ut.40b.res$MeanS1D1D2))
+age.bmi.bdsalt.40b.n <- length(resid(age.bmi.2salt.ut.40b.res$MeanS3D1D2))
+##adjusting for BMI, sig. negative decline in wake salT of -1.313 (-2.233120  -0.3935973) pg/mL per year, sig. negative decline in bed salT of -1.88 (-2.7985791  -0.9613626) pg/mL per year.
+
+#applying transformed data with bmi, >40y at recruitment
+agerec.bmi.2salt.40b.res <- lapply(z.log.age40b.2salt, db=age40b.data, function(x, db){
+  lm(x~z.log.age+z.bmi, data=db)	
+})
+agerec.bmi.2salt.40b.sres <- lapply(agerec.bmi.2salt.40b.res, summary)
+agerec.bmi.2salt.40b.ci <- lapply(agerec.bmi.2salt.40b.res, confint)
+##z.log.age and z.bmi sig. for both sample times
+
+##The overall population decline within men <40 is closer to that reported elsewhere in longitudinal studies by Harman et al 2001 The rate of decline of serum testosterone in Caucasion men according to Harman et al is 0.110 nmol/L per year.  This is 0.11 x 0.288 = 0.032 ng/ml per year or 32 pg/ml per year.  
+##Salivary testosterone according to Wang et al is 1/15 that of the serum concentration across a wide range of values.  Therefore, this gives 32 x 1/15 = 2.133 pg/ml per year. 
+##We observe something closer to this within men <40 after adjusting for BMI: -2.27 (-3.87, -0.68) pg/mL per year and a sig. negative decline in bed salT of -1.82 (-3.14, -0.513) pg/mL per year.
+##We observe something closer to this within men >40 after adjusting for BMI: -1.313 (-2.23, -0.39) pg/mL per year and a sig. negative decline in bed salT of -1.88 (-2.80, -0.96) pg/mL per year.
+##Indicates that the sig age-related declines are most pronounced at older and younger ages in this population. This was supported by confining analysis a 'middle aged' cohort between age 30-50, where there was not an age-related decline observed at all (not shown here) ##adjusting for BMI, non-sig decline in wake salT of men 30-50y -0.7941 (-2.558085   0.969888) pg/mL per year, non-sig. pos trend for bed salT of 0.80 (-0.8594868  2.473803) pg/mL per year.
+
+#Hypot 4.2.1a restricting analysis to men <40 are the slopes significantly different overall or between groups for salT?-------
+#method: ANCOVA of salT as dependent variable with age as predictor including all groups
+res.agerec.40a.res <- lapply(unt.40a.2salt, db=age40a.data, agerec.aov)
+lapply(res.agerec.40a.res, summary)
+##indicates a signficant effect of both age and residence for both time points
+
+#also test for interaction
+#method: ANCOVA of salT as dependent variable with age as predictor including all groups, as an interaction, then test for differences post-hoc
+res.40a.agerecxres <- lapply(unt.40a.2salt, db=age40a.data, agerecxres.aov)
+lapply(res.40a.agerecxres, summary)
+##within men under 40, n.s. non-sig. interaction effect. Differences between salT of sedentees and all other residence groups.
+
+#post-hoc testing of waking salT only
+summary(glht(res.40a.agerecxres$MeanS1D1D2, linfct = mcp(residence19pub = "Tukey")))
+##in post hoc testing, no differences in ageing profiles
+#sample size: summary(model.frame(res.40a.agerecxres$MeanS1D1D2)$residence19pub)
+
+#linear models 
+summary(lm(MeanS1D1D2~BMI+AgeRecruit*residence19pub, data=age40a.data))
+##within <40 men, no significant interaction effects, suggesting that a more simple model may apply when restricting analysis to men <40
+
+#also applying transformed data
+res.40a.agerecxres <- lapply(z.log.age40a.2salt, db=age40a.data, agerecxres.aov)
+lapply(res.40a.agerecxres, summary)
+##within <40 men, no significant interaction effects, suggesting that a more simple model may apply when restricting analysis to men <40
+
+#linear model for values of differences in slopes in waking testosterone with interactions, using transformed data and bmi to match other regressions in the paper, reported values in fig. 3
+resxagerec.40a.res <- lm(z.log.meanS1D1D2~z.bmi+z.log.age*residence19pub, data=age40a.data)
+resxagerec.40a.sres <- summary(lm(z.log.meanS1D1D2~z.bmi+z.log.age*residence19pub, data=age40a.data))
+resxagerec.40a.n <- summary(model.frame(lm(z.log.meanS1D1D2~z.bmi+z.log.age*residence19pub, data=age40a.data))$residence19pub)
+resxagerec.40a.ci <- confint(lm(z.log.meanS1D1D2~z.bmi+z.log.age*residence19pub, data=age40a.data))
+##within <40 men, no significant interaction effects, suggesting that a more simple model may apply when restricting analysis to men <40
+##see: res.2salt.40a.res for simplified model (Hypot. 1.1a)
+
+#list of coefficients and paste to add to text
+resxageres.coef <- as.list(resxagerec.40a.res$coefficients[c("z.log.age:residence19pubAdult migrants", "z.log.age:residence19pubChild migrants", "z.log.age:residence19pubSecond generation migrants", "z.log.age:residence19pubBritish European")])
+resxagerec.40a.ci.ls <- as.list(resxagerec.40a.ci[c("z.log.age:residence19pubAdult migrants", "z.log.age:residence19pubChild migrants", "z.log.age:residence19pubSecond generation migrants", "z.log.age:residence19pubBritish European"),])
+paste(sprintf("%.3f", resxageres.coef),", 95%CI=", paste(round(as.numeric(resxagerec.40a.ci.ls[1:4]),3), ", ", round(as.numeric(resxagerec.40a.ci.ls[5:8]),3), sep=""),sep="")
+
+#Hypot 4.3.1a age at recruitment <40 is continuous predictor of salivary testosterone within residence groups--------
+#Bengali Sedentees
+#Wake salT
+sed.s1d1d2.age.40a.res <- lm(MeanS1D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Bangladeshi sedentees"))
+sed.s1d1d2.age.40a.sres <- summary(sed.s1d1d2.age.40a.res)
+sed.s1d1d2.age.40a.ci <- confint(sed.s1d1d2.age.40a.res)
+##n.s. age-related trend in salT (positive .85 pg/mL per year)
+#Evening salT
+sed.s3d1d2.age.40a.res <- lm(MeanS3D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Bangladeshi sedentees"))
+sed.s3d1d2.age.40a.sres <- summary(sed.s3d1d2.age.40a.res)
+sed.s3d1d2.age.40a.ci <- confint(sed.s3d1d2.age.40a.res)
+##n.s. trend in bed salT positive 0.63 pg/ml per year
+
+#Adult migrants
+#AM salT
+adu.s1d1d2.age.40a.res <- lm(MeanS1D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Adult migrants"))
+adu.s1d1d2.age.40a.sres <- summary(adu.s1d1d2.age.40a.res)
+adu.s1d1d2.age.40a.ci <- confint(adu.s1d1d2.age.40a.res)
+##no sig. trend in wake salT (n.s. of 0.24 pg/mL per year)
+#Evening salT
+adu.s3d1d2.age.40a.res <- lm(MeanS3D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Adult migrants"))
+adu.s3d1d2.age.40a.sres <- summary(adu.s3d1d2.age.40a.res)
+adu.s3d1d2.age.40a.ci <- confint(adu.s3d1d2.age.40a.res)
+##no sig. trend in wake salT (n.s. of -1.16 pg/mL per year)
+
+#Child migrants 
+#AM salT
+chi.s1d1d2.age.40a.res <- lm(MeanS1D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Child migrants"))
+chi.s1d1d2.age.40a.sres <- summary(chi.s1d1d2.age.40a.res)
+chi.s1d1d2.age.40a.ci <- confint(chi.s1d1d2.age.40a.res)
+##no sig. trend in wake salT (n.s. of -0.81 pg/mL per year)
+#Evening salT
+chi.s3d1d2.age.40a.res <- lm(MeanS3D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Child migrants"))
+chi.s3d1d2.age.40a.sres <- summary(chi.s3d1d2.age.40a.res)
+chi.s3d1d2.age.40a.ci <- confint(chi.s3d1d2.age.40a.res)
+##sig. (p=0.0) negative trend in bed salT (-3.14 pg/mL per year)
+
+#Second Generation Migrants 
+#AM salT
+sg.s1d1d2.age.40a.res <- lm(MeanS1D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Second generation migrants"))
+sg.s1d1d2.age.40a.sres <- summary(sg.s1d1d2.age.40a.res)
+sg.s1d1d2.age.40a.ci <- confint(sg.s1d1d2.age.40a.res)
+##no sig. trend in wake salT (n.s. of -0.60 pg/mL per year)
+#Evening salT
+sg.s3d1d2.age.40a.res <- lm(MeanS3D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="Second generation migrants"))
+sg.s3d1d2.age.40a.sres <- summary(sg.s3d1d2.age.40a.res)
+sg.s3d1d2.age.40a.ci <- confint(sg.s3d1d2.age.40a.res)
+##no sig. trend in evening salT (n.s. of -2.15 pg/mL per year)
+
+#British European
+#AM salT
+eur.s1d1d2.age.40a.res <- lm(MeanS1D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="British European"))
+eur.s1d1d2.age.40a.sres <- summary(eur.s1d1d2.age.40a.res)
+eur.s1d1d2.age.40a.ci <- confint(eur.s1d1d2.age.40a.res)
+##no sig. trend in wake salT (n.s. of -1.58 pg/mL per year)
+eur.s3d1d2.age.40a.res <- lm(MeanS3D1D2 ~ AgeRecruit, subset(age40a.data, residence19pub=="British European"))
+eur.s3d1d2.age.40a.sres <- summary(eur.s3d1d2.age.40a.res)
+eur.s3d1d2.age.40a.ci <- confint(eur.s3d1d2.age.40a.res)
+##no sig. trend in wake salT (n.s. of 1.80 pg/mL per year)
+
+##4.3.1a conclusions: when confining to men <40, no evidence of a difference between residential groups in age related decline, except in CHI Bed sample. Suggests that age-related variations seen across groups is particular to the whole of the lifecourse, that differences in the slopes of decline are steepest when comparing men at younger or older ages, and not as steep during middle age.
+
+#Hypot 4.4.1a restricting to <40y, are the slopes significantly different between groups for salT, for those showing a decline (UK resident men only)?------
+#method: ANCOVA of salT as dependent variable with age as predictor including all groups, set Europeans as reference group
+age40a.ukres.data <- subset(age40a.data, residence19pub!="Bangladeshi sedentees")
+age40a.ukres.data$residence19pub <- relevel(age40a.ukres.data$residence19pub, ref="British European")
+age40a.ukres.data$residence19pub <- droplevels(age40a.ukres.data$residence19pub)
+res.agerec.40a.ukres <- lapply(unt.ukres.40a.2salt, db=age40a.ukres.data, agerec.aov)
+lapply(res.agerec.40a.ukres, summary)
+##indicates a signficant effect of both age and residence for waking salT within UK Res only, effect of age in both Wake and Bed salT
+##counts of sample size: summary(subset(age40a.data, residence19pub!="Bangladeshi sedentees")$residence19pub)
+
+#also test for interaction
+#method: ANCOVA of salT as dependent variable with age as predictor including all groups, as an interaction, then test for differences post-hoc
+res.agerecxukres <- lapply(unt.ukres.40a.2salt, db=age40a.ukres.data, agerecxres.aov)
+lapply(res.agerecxukres, summary)
+##No indiciation of a significant agexresidence interaction in <40 men, therefore the slopes aren't different between residence groups within the UK
+
+#alternative linear model using transformed data and bmi to match other regressions in the paper
+summary(lm(z.log.meanS1D1D2~z.bmi+z.log.age*residence19pub, data=age40a.ukres.data))
+confint(lm(z.log.meanS1D1D2~z.bmi+z.log.age*residence19pub, data=age40a.ukres.data))
+##no indictaion of interaction effect, refer to more simple model:
+summary(lm(z.log.meanS1D1D2~z.bmi+z.log.age+residence19pub, data=age40a.ukres.data))
+confint(lm(z.log.meanS1D1D2~z.bmi+z.log.age+residence19pub, data=age40a.ukres.data))
+summary(glht(lm(z.log.meanS1D1D2~z.bmi+z.log.age+residence19pub, data=age40a.ukres.data), linfct = mcp(residence19pub = "Tukey")))
+##when confining analysis to men <40 in the UK only, sig. higher waking salT of CHI and 2NG, compared to EUR and ADU
+
+#alternative linear model using transformed data and imputed mssbmi to match other regressions in the paper
+summary(lm(z.log.meanS1D1D2~z.log.age+z.mssbmi+residence19pub+z.log.age+residence19pub, data=age40a.ukres.data))
+confint(lm(z.log.meanS1D1D2~z.log.age+z.mssbmi+residence19pub+z.log.age+residence19pub, data=age40a.ukres.data))
+summary(glht(lm(z.log.meanS1D1D2~z.mssbmi+z.log.age+residence19pub, data=ukres19.data), linfct = mcp(residence19pub = "Tukey")))
+##when confining analysis to men <40 in the UK only, with imputed mssbmi sig. higher waking salT of CHI and 2NG, compared to EUR and ADU
+
+#Hypot 4.5.1a When confnining analysis to men <40 who did not show a sig relationship between age and salT (UK born men) is there a significant age related decline in salT, when not considering residence group?-------
+#AM salT
+res.age.40a.ukborn.s1 <- lm(MeanS1D1D2~AgeRecruit, data=subset(age40a.data, residence19pub=="British European"| residence19pub=="Second generation migrants"))
+summary(res.age.40a.ukborn.s1)
+confint(res.age.40a.ukborn.s1)
+length(resid(res.age.40a.ukborn.s1))
+#n.s. age realted decline of waking salT -2.09 (95%CI: -4.857065, 0.672462) within men born and raised in the UK
+
+#Eve salT
+res.age.40a.ukborn.s3 <- lm(MeanS3D1D2~AgeRecruit, data=subset(age40a.data, residence19pub=="British European"| residence19pub=="Second generation migrants"))
+summary(res.age.40a.ukborn.s3)
+confint(res.age.40a.ukborn.s3)
+length(resid(res.age.40a.ukborn.s3))
+#non-sig age realted decline of evening salT of -1.8 pg/ml per year (95%CI: -4.452067, 0.8494162) within men born and raised in the UK
+
+#Hypot 4.5.2a <40 age at recruitment Does adjustment of waking salT to decline found in UK born groups eliminate differences between Bengali and European groups?----
+#create an adjusted variable for waking salT adding 1.22pg/ml for each year over age 22 men were at recruitment
+age40a.data$S1D1D2.uk.adj <- ifelse(age40a.data$AgeRecruit<=22, age40a.data$MeanS1D1D2, ((age40a.data$AgeRecruit-22)*1.22)+age40a.data$MeanS1D1D2)
+#inspect to see if this adjusted value needs to be log transformed for normal distriboution
+hist(subset(age40a.data, residence19pub=="British European"| residence19pub=="Second generation migrants")[,"S1D1D2.uk.adj"])
+##normally distributed, include untransformed value
+
+#in <40 age at recruit, linear model comparing UK-born groups with adjusted salT and z.bmi
+summary(lm(S1D1D2.uk.adj~z.log.age+z.bmi+residence19pub, data=subset(age40a.data, residence19pub=="British European"| residence19pub=="Second generation migrants")))
+confint(lm(S1D1D2.uk.adj~z.log.age+z.bmi+residence19pub, data=subset(age40a.data, residence19pub=="British European"| residence19pub=="Second generation migrants")))
+##after adjusting correction factor, second generation waking salT not sig. diff. in men under age 40 born in UK
+
+
+###PUBERTY HYPOTHESES-------
+#Hypot 5.1.1a <40 age at recruitment, age at puberty determined by residence after adjustment for recall bias and demographic trends by age at recruitment----
+res.pub40a.res <- lapply(z.age40a.pub, y=age40a.data$residence19pub, db=age40a.data, age.lm)
+res.pub40a.sres <- lapply(res.pub40a.res, summary)
+#sample sizes: summary(model.frame(res.pub40a.res$z.pub.compos)$y)
+#in men <40 compared to sedentees, 2NG and EUR are both sig. earlier age of puberty in composite and all measures (besides voice for 2NG), ADU recall earlier age at voice breaking
+
+#for post-hoc multiple comparison Tukey correction of all-pair multiple comparison
+res.pub40a.res.ph <- summary(glht(res.pub40a.res$z.pub.compos, linfct=mcp(y="Tukey")))
+## Composite value: EUR > SED, ADU, CHI; 2NG > SED
+## in contrast to 5.1.1., difference from 2NG n.s. for ADU
+
+#Hypot 5.2.2a, in <40 men, age at puberty determined by age at migration of child migrants (age 19 cutoff), after adjustment for recall bias and demographic trends by age at recruitment.------
+amu.age.19pub40a.res <- lm(z.pub.compos~z.log.age, data=subset(age40a.data, residence19pub=="Child migrants"))
+amu.age.19pub40a.sres <- summary(amu.age.19pub40a.res)
+confint(amu.age.19pub40a.res)
+#sample size: nrow(model.frame(amu.age.19pub.res$z.pub.compos))
+#within child migrants (<19 years) only, non sig. (p=0.07) positive correlation between age at migration and composite age at puberty, sig. for age at shaving and pubic hair. 
+#sample sizes: n=19
+
+#Hypot 5.3.1, age at puberty determined by migration cohort 0-8 years child migrants and 9-19 years (age 19 cutoff), compared to <19 after adjustment for recall bias and demographic trends by age at recruitment.----
+cat.19pub.res <- lapply(z.pub, y=repro.data$age.8.19.mig, db=repro.data, age.lm)
+cat.19pub.sres <- lapply(cat.19pub.res, summary)
+cat.19pub.ci <- lapply(cat.19pub.res, confint)
+summary(model.frame(cat.19pub.res$z.pub.compos)$y)
+
+cat.19pub.res.ph <- summary(glht(cat.19pub.res$z.pub.compos, linfct=mcp(y="Tukey")))
+confint(glht(cat.19pub.res$z.pub.compos, linfct=mcp(y="Tukey")))
+##migration cohort 0-8 years child migrants recall sig. earlier shaving, n.s. pubic hair (p=0.057), compared to 9-19, n.s. composite. Note that if not adjusting for age, migrants 0-9 recall earlier composite than 9-19 (not shown)
+
+#Hypot 5.3.2, age at puberty determined by migration cohort pre-birth-8 years (Second generation and child migrants) and 9-19 years (age 19 cutoff), after adjustment for recall bias and demographic trends by age at recruitment.----
+cat.b19pub.res <- lapply(z.pub, y=repro.data$age.b8.19.mig, db=repro.data, age.lm)
+cat.b19pub.sres <- lapply(cat.b19pub.res, summary)
+cat.b19pub.ci <- lapply(cat.b19pub.res, confint)
+summary(model.frame(cat.b19pub.res$z.pub.compos)$y)
+
+cat.b19pub.res.ph <- summary(glht(cat.b19pub.res$z.pub.compos, linfct=mcp(y="Tukey")))
+confint(glht(cat.b19pub.res$z.pub.compos, linfct=mcp(y="Tukey")))
+
+#Hypotheses 6a: Across all groups <40, without separation by ethnicity or developmental exposure to ecological conditions, adult salivary T is a predictor of recalled age at puberty-------
+
+#Hypot 6.1.1a waking adult salT is a predictor of pub traits across all groups, after adjustment for recall bias and demographic trends by age at recruitment.-------
+salt1.pub.40a.res <- lm(z.pub.compos~z.log.age+z.log.meanS1D1D2, data=age40a.data)	
+salt1.pub.40a.sres <- summary(salt1.pub.40a.res)
+length(resid(salt1.pub.40a.res))
+confint(salt1.pub.40a.res)
+
+#Hypot 6.1.2a evening adult salT is a predictor of pub traits across all groups, after adjustment for recall bias and demographic trends by age at recruitment.-----
+salt3.pub.40a.res <- lm(z.pub.compos~z.log.age+z.log.meanS3D1D2, data=age40a.data)	
+salt3.pub.40a.sres <- summary(salt3.pub.40a.res)
+length(resid(salt3.pub.40a.res))
+confint(salt3.pub.40a.res)
+
+
+###HEIGHT HYPOTHESES-------
+#Hypotheses 9: Childhood age at migration is a predictor of adult height------------
+
+#Hypot 9.1.1 within CHI <40  only, age at migration "z.AgeMigUK" as continuous predictor for migrants who arrived before 19years, no covariates-----------
+height.agemig.chi.40a.res <- lm(z.height~z.AgeMigUK, data=subset(age40a.data, residence19pub=="Child migrants"))
+height.agemig.chi.40a.sres <- summary(height.agemig.chi.40a.res)
+confint(height.agemig.chi.40a.res)
+nrow(model.frame(height.agemig.chi.40a.res))
+##for Age Mig within CHI only, height is not sig. predicted by age at migration.
+
+#Hypot 9.1.2 within CHI <40 only, age at migration "z.AgeMigUK" as continuous predictor for migrants who arrived before 19years, age at recruitment as covariate-----------
+height.agemig.agerec.chi.40a.res <- lm(z.height~z.log.age+z.AgeMigUK, data=subset(age40a.data, residence19pub=="Child migrants"))
+height.agemig.agerec.chi.40a.sres <- summary(height.agemig.agerec.chi.40a.res)
+#when age at recruitment and age at migration are both included, neither shows a significant age at migration effect. 
+
+#Hypotheses 10: Adult age at migration is a predictor of adult height------------
+
+#Hypot 10.1.1 within ADU only, age at migration "z.AgeMigUK" as continuous predictor for <40 year old migrants who arrived after 19years, no covariates-----------
+height.agemig.adu.40a.res <- lm(z.height~z.AgeMigUK, data=subset(age40a.data, residence19pub=="Adult migrants"))
+height.agemig.adu.40a.sres <- summary(height.agemig.adu.40a.res)
+confint(height.agemig.adu.40a.res)
+##for Age Mig within ADU only, height is n.s. predicted by age at migration.
+
+#Hypot 10.1.2 within ADU only, age at migration "z.AgeMigUK" as continuous predictor for ,40 year old migrants who arrived after 19years, age at recruitment as covariate-----------
+height.agemig.agerec.adu.40a.res <- lm(z.height~z.log.age+z.AgeMigUK, data=subset(age40a.data, residence19pub=="Adult migrants"))
+height.agemig.agerec.adu.40a.sres <- summary(height.agemig.agerec.adu.40a.res)
+#when age at recruitment and age at migration are both included, neither shows a significant age at migration effect.
+
+#Hypot 10.1.3 within ADU only, age at recruitment as continuous predictor for migrants who arrived after 19years no covariate-----------
+height.agerec.adu.40a.res <- lm(z.height~z.log.age, data=subset(age40a.data, residence19pub=="Adult migrants"))
+height.agerec.adu.40a.sres <- summary(height.agemig.adu.40a.res)
+confint(height.agerec.adu.40a.res)
+#age at recruitment alone n.s. on height.
+
+
+#SUPPLEMENTAL ANALYSES OF intra-group analysis of Child migrants with imputed BMI from package "mi"--------
+#Hypot 2.1.2.i within CHI only, age at migration "z.AgeMigUK" as continuous predictor who arrived before 19years "y19" regressions, with imputed BMI from package "mi"-------------
+#waking pooled
+y19a.s1salt.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS1D1D2~z.log.age+z.bmi.ci+z.AgeMigUK))
+y19a.s1salt.mssbmi.ci.sres <- summary(MIcombine(y19a.s1salt.mssbmi.ci.res))
+
+#evening pooled
+y19a.s3salt.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS3D1D2~z.log.age+z.bmi.ci+z.AgeMigUK))
+y19a.s3salt.mssbmi.ci.sres <- summary(MIcombine(y19a.s3salt.mssbmi.ci.res))
+
+#chain 1
+y19a.2salt.mssbmi.ci1.res <- lapply(z.log.19.2salt.i, y=ci1.mig.imp.data.chi$z.AgeMigUK, db=ci1.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19a.2salt.mssbmi.ci1.sres <- lapply(y19a.2salt.mssbmi.ci1.res, summary)
+##Age Mig n.s. Waking (p=0.9) or Bed (p=0.1) sample within CHI only. age sig. neg covariate for Wake sample
+
+#chain 2
+y19a.2salt.mssbmi.ci2.res <- lapply(z.log.19.2salt.i, y=ci2.mig.imp.data.chi$z.AgeMigUK, db=ci2.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19a.2salt.mssbmi.ci2.sres <- lapply(y19a.2salt.mssbmi.ci2.res, summary)
+##Age Mig n.s. Waking (p=0.89) or Bed (p=0.084) sample within CHI only. age sig. neg covariate for Wake sample
+
+#chain 3
+y19a.2salt.mssbmi.ci3.res <- lapply(z.log.19.2salt.i, y=ci3.mig.imp.data.chi$z.AgeMigUK, db=ci3.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19a.2salt.mssbmi.ci3.sres <- lapply(y19a.2salt.mssbmi.ci3.res, summary)
+##Age Mig n.s. Waking (p=0.86) or Bed (p=0.076) sample within CHI only. age sig. neg covariate for Wake sample
+
+#chain 4
+y19a.2salt.mssbmi.ci4.res <- lapply(z.log.19.2salt.i, y=ci4.mig.imp.data.chi$z.AgeMigUK, db=ci4.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19a.2salt.mssbmi.ci4.sres <- lapply(y19a.2salt.mssbmi.ci4.res, summary)
+##Age Mig n.s. Waking (p=0.80) or Bed (p=0.068) sample within CHI only. age sig. neg covariate for Wake sample
+#Using imputed values, Age Mig is non-sig. predictor of salivary testosterone at waking or evening for any of four chains, Using imputed values from "mi" package does not alter the results (results match setting BMI to population avg mss.bmi)
+
+#Hypot 2.2.2i age at migration "z.AgeMigUK" as continuous predictor with number of years in uk including ecological exposure: number of years in the UK "nyu" regressions in CHI under 19yo migs only with BMI imputed from package "mi"--------
+#waking pooled
+nyu.s1salt.amu.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS1D1D2~NumYearsUK+z.bmi.ci+z.AgeMigUK))
+nyu.s1salt.amu.mssbmi.ci.sres <- summary(MIcombine(nyu.s1salt.amu.mssbmi.ci.res))
+
+#evening pooled
+nyu.s1salt.amu.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS3D1D2~NumYearsUK+z.bmi.ci+z.AgeMigUK))
+nyu.s1salt.amu.mssbmi.ci.sres <- summary(MIcombine(nyu.s1salt.amu.mssbmi.ci.res))
+
+#chain 1
+nyu.2salt.amu.mssbmi.ci1.res <- lapply(z.log.19.2salt, y=ci1.mig.imp.data.chi$z.AgeMigUK, db=ci1.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+nyu.2salt.amu.mssbmi.ci1.sres <- lapply(nyu.2salt.amu.mssbmi.ci1.res, summary)
+##for Age Mig within Child migs only, number of years in the UK and imputed bmi as covariates, waking (p=0.11) n.s. but evening time point (p=0.0036) sig. neg predicted by age at migration, waking also neg. predicted by number of years in the UK
+
+#chain 2
+nyu.2salt.amu.mssbmi.ci2.res <- lapply(z.log.19.2salt, y=ci2.mig.imp.data.chi$z.AgeMigUK, db=ci2.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+nyu.2salt.amu.mssbmi.ci2.sres <- lapply(nyu.2salt.amu.mssbmi.ci2.res, summary)
+##for Age Mig within Child migs only, number of years in the UK and imputed bmi as covariates, waking (p=0.09) and evening time point (p=0.0033) sig. neg predicted by age at migration, waking also neg. predicted by number of years in the UK
+
+#chain 3
+nyu.2salt.amu.mssbmi.ci3.res <- lapply(z.log.19.2salt, y=ci3.mig.imp.data.chi$z.AgeMigUK, db=ci3.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+nyu.2salt.amu.mssbmi.ci3.sres <- lapply(nyu.2salt.amu.mssbmi.ci3.res, summary)
+##for Age Mig within Child migs only, number of years in the UK and imputed bmi as covariates, waking (p=0.068) n.s. but evening time point (p=0.0027) sig. neg predicted by age at migration, waking also neg. predicted by number of years in the UK
+
+#chain 4
+nyu.2salt.amu.mssbmi.ci4.res <-lapply(z.log.19.2salt, y=ci4.mig.imp.data.chi$z.AgeMigUK, db=ci4.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+nyu.2salt.amu.mssbmi.ci4.sres <- lapply(nyu.2salt.amu.mssbmi.ci4.res, summary)
+##for Age Mig within Child migs only, number of years in the UK and imputed bmi as covariates, waking (p=0.065) n.s. but evening time point (p=0.00254) sig. neg predicted by age at migration, waking also neg. predicted by number of years in the UK
+##Overall, using imputed values from "mi" package does not alter the results (results match setting BMI to population avg mss.bmi), with waking a marginally sig. finding while bed is clearly sig.
+
+#Hypot 2.3.2i SalT within CHI migs, migration before age 9 as compared to migration age 9-19 "age.8.19.mig" regression with age at recruitment and with imputed BMI from package "mi"-------
+#waking pooled
+y19b.age.s1salt.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS1D1D2~z.log.age+z.bmi.ci+age.8.19.mig))
+y19b.age.s1salt.mssbmi.ci.sres <- summary(MIcombine(y19b.age.s1salt.mssbmi.ci.res))
+
+#evening pooled
+y19b.age.s3salt.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS3D1D2~z.log.age+z.bmi.ci+age.8.19.mig))
+y19b.age.s3salt.mssbmi.ci.sres <- summary(MIcombine(y19b.age.s3salt.mssbmi.ci.res))
+
+#chain 1
+y19b.age.2salt.mssbmi.ci1.res <- lapply(z.log.19.2salt, y=ci1.mig.imp.data.chi$age.8.19.mig, db=ci1.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19b.age.2salt.mssbmi.ci1.sres <- lapply(y19b.age.2salt.mssbmi.ci1.res, summary)
+##Age recruit neg. sig. relationship for both sample times. Migration cohort n.s. for both sample times
+
+#chain 2
+y19b.age.2salt.mssbmi.ci2.res <- lapply(z.log.19.2salt, y=ci2.mig.imp.data.chi$age.8.19.mig, db=ci2.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19b.age.2salt.mssbmi.ci2.sres <- lapply(y19b.age.2salt.mssbmi.ci2.res, summary)
+##for Wake age recruit neg. sig. relationship. For Bed, n.s. (p=0.0501) Migration cohort n.s. for both sample times
+
+#chain 3
+y19b.age.2salt.mssbmi.ci3.res <- lapply(z.log.19.2salt, y=ci3.mig.imp.data.chi$age.8.19.mig, db=ci3.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19b.age.2salt.mssbmi.ci3.sres <- lapply(y19b.age.2salt.mssbmi.ci3.res, summary)
+##Age recruit neg. sig. relationship for both sample times. Migration cohort n.s. for both sample times
+
+#chain 4
+y19b.age.2salt.mssbmi.ci4.res <- lapply(z.log.19.2salt, y=ci4.mig.imp.data.chi$age.8.19.mig, db=ci4.mig.imp.data.chi, function(x, y, db){
+  lm(x~z.log.age+z.bmi.ci+y, data=db)	
+})
+y19b.age.2salt.mssbmi.ci4.sres <- lapply(y19b.age.2salt.mssbmi.ci4.res, summary)
+##Age recruit neg. sig. relationship for waking, evening n.s. (p=0.06) sample times. Migration cohort n.s. for both sample times
+#Using imputed values, when including age at recruitment into the models, migration before or after age 9 is not a sig. predictor of salivary testosterone at any time point, for any of four chains. Age at recrutiment sig neg. predictor of Waking, marginally of Bed salT (results match setting BMI to population avg mss.bmi)
+
+#Hypot 2.4.2i SalT within CHI migs, migration before age 9 as compared to migration age 9-19 "age.8.19.mig" regression including ecological exposure: number of years in the UK "nyu" regressions in CHI under 19yo migs only with imputed BMI from package "mi"-----
+#waking pooled
+y19c.nyu.s1salt.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS1D1D2~NumYearsUK+z.bmi.ci+age.8.19.mig))
+y19c.nyu.s1salt.mssbmi.ci.sres <- summary(MIcombine(y19c.nyu.s1salt.mssbmi.ci.res))
+
+#evening pooled
+y19c.nyu.s3salt.mssbmi.ci.res <- with(mig.19pub.data.i, lm(z.log.meanS3D1D2~NumYearsUK+z.bmi.ci+age.8.19.mig))
+y19c.nyu.s3salt.mssbmi.ci.sres <- summary(MIcombine(y19c.nyu.s3salt.mssbmi.ci.res))
+
+#chain 1
+y19c.nyu.2salt.mssbmi.ci1.res <- lapply(z.log.19.2salt, y=ci1.mig.imp.data.chi$age.8.19.mig, db=ci1.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+y19c.nyu.2salt.mssbmi.ci1.sres <- lapply(y19c.nyu.2salt.mssbmi.ci1.res, summary)
+##for Wake (p=0.094) n.s. and Bed sig. (p=0.013), Birth to age 9 > 9-19y migs, Num Years neg. sig. relationship. for wake only.
+
+#chain 2
+y19c.nyu.2salt.mssbmi.ci2.res <- lapply(z.log.19.2salt, y=ci2.mig.imp.data.chi$age.8.19.mig, db=ci2.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+y19c.nyu.2salt.mssbmi.ci2.sres <- lapply(y19c.nyu.2salt.mssbmi.ci2.res, summary)
+##for Wake (p=0.040) n.s. and Bed sig. (p=0.01), Birth to age 9 > 9-19y migs, Num Years neg. sig. relationship. for wake only.
+
+#chain 3
+y19c.nyu.2salt.mssbmi.ci3.res <- lapply(z.log.19.2salt, y=ci3.mig.imp.data.chi$age.8.19.mig, db=ci3.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+y19c.nyu.2salt.mssbmi.ci3.sres <- lapply(y19c.nyu.2salt.mssbmi.ci3.res, summary)
+##for Wake (p=0.06) n.s. and Bed sig. (p=0.009), Birth to age 9 > 9-19y migs, Num Years neg. sig. relationship. for wake only.
+
+#chain 4
+y19c.nyu.2salt.mssbmi.ci4.res <- lapply(z.log.19.2salt, y=ci4.mig.imp.data.chi$age.8.19.mig, db=ci4.mig.imp.data.chi, function(x, y, db){
+  lm(x~NumYearsUK+z.bmi.ci+y, data=db)	
+})
+y19c.nyu.2salt.mssbmi.ci4.sres <- lapply(y19c.nyu.2salt.mssbmi.ci4.res, summary)
+##for Wake (p=0.057) n.s. and Bed sig. (p=0.008), Birth to age 9 > 9-19y migs, Num Years neg. sig. relationship. for wake only.
+##Overall, using imputed values from "mi" package does not alter the results (results match setting BMI to population avg mss.bmi), waking marginal p=0.07-0.04, bed sig. p=0.01-0.008
+
+
+#TABLES FOR SUPPLEMENTAL ANALYSIS SECTION 2-----
+
+#Descriptives: residence groups <40 years at recruitment--------
+#mean, sd, 95%ci
+n.40a.tot<-tapply(X=age40a.data$PartNum, INDEX=age40a.data$residence19pub, FUN=length)
+m.40a.age<-round(tapply(X=age40a.data$AgeRecruit, INDEX=age40a.data$residence19pub, FUN=mean, na.rm=TRUE),1)
+sd.40a.age<-round(tapply(X=age40a.data$AgeRecruit, INDEX=age40a.data$residence19pub, FUN=sd, na.rm=TRUE),1)
+n.40a.age<-round(tapply(X=age40a.data$AgeRecruit, INDEX=age40a.data$residence19pub, FUN=length),1)
+ci.40a.age <- aggregate(age40a.data[,"AgeRecruit"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.height<-round(tapply(X=age40a.data$Height, INDEX=age40a.data$residence19pub, FUN=mean, na.rm=TRUE),1)
+sd.40a.height<-round(tapply(X=age40a.data$Height, INDEX=age40a.data$residence19pub, FUN=sd, na.rm=TRUE),1)
+n.40a.height<-round(tapply(X=age40a.data$Height, INDEX=age40a.data$residence19pub, FUN=length),1)
+ci.40a.height <- aggregate(age40a.data[,"Height"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.weight<-round(tapply(X=age40a.data$Weight, INDEX=age40a.data$residence19pub, FUN=mean, na.rm=TRUE),1)
+sd.40a.weight<-round(tapply(X=age40a.data$Weight, INDEX=age40a.data$residence19pub, FUN=sd, na.rm=TRUE),1)
+n.40a.weight<-round(tapply(X=age40a.data$Weight, INDEX=age40a.data$residence19pub, FUN=length),1)
+ci.40a.weight <- aggregate(age40a.data[,"Weight"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.bmi<-round(tapply(X=age40a.data$BMI, INDEX=age40a.data$residence19pub, FUN=mean, na.rm=TRUE),1)
+sd.40a.bmi<-round(tapply(X=age40a.data$BMI, INDEX=age40a.data$residence19pub, FUN=sd, na.rm=TRUE),1)
+ci.40a.bmi <- aggregate(age40a.data[,"BMI"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.s1d1d2<-round(tapply(X=age40a.data$MeanS1D1D2, INDEX=age40a.data$residence19pub, FUN=mean, na.rm=TRUE),1)
+sd.40a.s1d1d2<-round(tapply(X=age40a.data$MeanS1D1D2, INDEX=age40a.data$residence19pub, FUN=sd, na.rm=TRUE),1)
+ci.40a.s1d1d2 <- aggregate(age40a.data[,"MeanS1D1D2"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.s3d1d2<-round(tapply(X=age40a.data$MeanS3D1D2, INDEX=age40a.data$residence19pub, FUN=mean, na.rm=TRUE),1)
+sd.40a.s3d1d2<-round(tapply(X=age40a.data$MeanS3D1D2, INDEX=age40a.data$residence19pub, FUN=sd, na.rm=TRUE),1)
+ci.40a.s3d1d2 <- aggregate(age40a.data[,"MeanS3D1D2"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.pub.voice<-round(tapply(X=age40a.data$PubVoice.n, INDEX=age40a.data$residence19pub,FUN=mean, na.rm=TRUE),1)
+sd.40a.pub.voice<-round(tapply(X=age40a.data$PubVoice.n, INDEX=age40a.data$residence19pub,FUN=sd, na.rm=TRUE),1)
+ci.40a.pub.voice <- aggregate(age40a.data[,"PubVoice.n"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.pub.shave<-round(tapply(X=age40a.data$PubShave.n, INDEX=age40a.data$residence19pub,FUN=mean, na.rm=TRUE),1)
+sd.40a.pub.shave<-round(tapply(X=age40a.data$PubShave.n, INDEX=age40a.data$residence19pub,FUN=sd, na.rm=TRUE),1)
+ci.40a.pub.shave <- aggregate(age40a.data[,"PubShave.n"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.pub.pub<-round(tapply(X=age40a.data$PubPub.n, INDEX=age40a.data$residence19pub,FUN=mean, na.rm=TRUE),1)
+sd.40a.pub.pub<-round(tapply(X=age40a.data$PubPub.n, INDEX=age40a.data$residence19pub,FUN=sd, na.rm=TRUE),1)
+ci.40a.pub.pub <- aggregate(age40a.data[,"PubPub.n"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.pub.ne<-round(tapply(X=age40a.data$PubNE.n, INDEX=age40a.data$residence19pub,FUN=mean, na.rm=TRUE),1)
+sd.40a.pub.ne<-round(tapply(X=age40a.data$PubNE.n, INDEX=age40a.data$residence19pub,FUN=sd, na.rm=TRUE),1)
+ci.40a.pub.ne <- aggregate(age40a.data[,"PubNE.n"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+m.40a.pub.compos<-round(tapply(X=age40a.data$pub.compos, INDEX=age40a.data$residence19pub,FUN=mean, na.rm=TRUE),1)
+sd.40a.pub.compos<-round(tapply(X=age40a.data$pub.compos, INDEX=age40a.data$residence19pub,FUN=sd, na.rm=TRUE),1)
+ci.40a.pub.compos <- aggregate(age40a.data[,"pub.compos"], list(age40a.data[,"residence19pub"]), FUN = function(x) t.test(x)$conf.int[1:2])
+
+#all group totals/means
+n.40a.all <- nrow(age40a.data)
+m.40a.age.all <- round(mean(age40a.data$AgeRecruit, na.rm=TRUE),1)
+m.40a.height.all <- round(mean(age40a.data$Height, na.rm=TRUE),1)
+m.40a.weight.all <- round(mean(age40a.data$Weight, na.rm=TRUE),1)
+m.40a.bmi.all <- round(mean(age40a.data$BMI, na.rm=TRUE),1)
+m.40a.s1d1d2.all <- round(mean(age40a.data$MeanS1D1D2, na.rm=TRUE),1)
+m.40a.s3d1d2.all <- round(mean(age40a.data$MeanS3D1D2, na.rm=TRUE),1)
+m.40a.pub.compos.all <- round(mean(age40a.data$pub.compos, na.rm=TRUE),1)
+
+#all group sds
+sd.40a.age.all <- round(sd(age40a.data$AgeRecruit, na.rm=TRUE),2)
+sd.40a.height.all <- round(sd(age40a.data$Height, na.rm=TRUE),2)
+sd.40a.weight.all <- round(sd(age40a.data$Weight, na.rm=TRUE),2)
+sd.40a.bmi.all <- round(sd(age40a.data$BMI, na.rm=TRUE),2)
+sd.40a.s1d1d2.all <- round(sd(age40a.data$MeanS1D1D2, na.rm=TRUE),2)
+sd.40a.s3d1d2.all <- round(sd(age40a.data$MeanS3D1D2, na.rm=TRUE),2)
+sd.40a.pub.compos.all <- round(sd(age40a.data$pub.compos, na.rm=TRUE),2)
+
+m.40a.all <- c(m.40a.age.all, m.40a.height.all, m.40a.weight.all, m.40a.bmi.all, m.40a.s1d1d2.all, m.40a.s3d1d2.all, m.40a.pub.compos.all)
+sd.40a.all <- c(sd.40a.age.all, sd.40a.height.all, sd.40a.weight.all, sd.40a.bmi.all, sd.40a.s1d1d2.all, sd.40a.s3d1d2.all, sd.40a.pub.compos.all)
+
+#function for pasting mean and SDs together
+mean.40a.sd.40a.f <- function(m.40a.var, sd.40a.var){
+  paste(sprintf("%.1f", m.40a.var)," (",round(sd.40a.var,1),")",sep="") 
+}
+msd.40a.all <- c(n.40a.all, mean.40a.sd.40a.f(m.40a.all, sd.40a.all))
+
+#mean and standard deviation
+msd.40a.age <- paste(sprintf("%.1f", m.40a.age)," (",round(sd.40a.age,2),")",sep="") 
+msd.40a.height <- paste(sprintf("%.1f", m.40a.height)," (",round(sd.40a.height,2),")",sep="") 
+msd.40a.weight <- paste(sprintf("%.1f", m.40a.weight)," (",round(sd.40a.weight,2),")",sep="")
+msd.40a.bmi <- paste(sprintf("%.1f", m.40a.bmi)," (",round(sd.40a.bmi,2),")",sep="")
+msd.40a.s1d1d2 <- paste(sprintf("%.1f", m.40a.s1d1d2)," (",round(sd.40a.s1d1d2,2),")",sep="")
+msd.40a.s3d1d2 <- paste(sprintf("%.1f", m.40a.s3d1d2)," (",round(sd.40a.s3d1d2,2),")",sep="")
+msd.40a.pub.voice <- paste(sprintf("%.1f", m.40a.pub.voice)," (",round(sd.40a.pub.voice,2),")",sep="")
+msd.40a.pub.shave <- paste(sprintf("%.1f", m.40a.pub.shave)," (",round(sd.40a.pub.shave,2),")",sep="")
+msd.40a.pub.pub <- paste(sprintf("%.1f", m.40a.pub.pub)," (",round(sd.40a.pub.pub,2),")",sep="")
+msd.40a.pub.ne <- paste(sprintf("%.1f", m.40a.pub.ne)," (",round(sd.40a.pub.ne,2),")",sep="")
+msd.40a.pub.compos <- paste(sprintf("%.1f", m.40a.pub.compos)," (",round(sd.40a.pub.compos,2),")",sep="")
+
+
+#mean and ci (for text)
+#a function for pasting mean and ci together
+mean.40a.ci <- function(m.40a.var, ci.40a.var){
+  paste(sprintf("%.1f", m.40a.var),", 95%CI=", paste(round(as.numeric(ci.40a.var$x)[1:5],1), ", ", round(as.numeric(ci.40a.var$x)[6:10],1), sep=""),sep="")
+}
+m.40a.var.ls <- c("m.40a.age", "m.40a.height", "m.40a.weight", "m.40a.bmi", "m.40a.s1d1d2", "m.40a.s2d1d2", "m.40a.s3d1d2", "m.40a.pub.voice", "m.40a.pub.shave", "m.40a.pub.pub", "m.40a.pub.ne", "m.40a.pub.compos")
+ci.40a.var.ls <- c("ci.40a.age", "ci.40a.height", "ci.40a.weight", "ci.40a.bmi", "ci.40a.s1d1d2", "ci.40a.s2d1d2", "ci.40a.s3d1d2", "ci.40a.pub.voice", "ci.40a.pub.shave", "ci.40a.pub.pub", "ci.40a.pub.ne", "ci.40a.pub.compos")
+cbind(noquote(m.40a.var.ls[1]), noquote(ci.40a.var.ls))
+mean.40a.ci(m.40a.age, ci.40a.age)
+mean.40a.ci(m.40a.s1d1d2, ci.40a.s1d1d2)
+mean.40a.ci(m.40a.pub.compos, ci.40a.pub.compos)
+mean.40a.ci(m.40a.s1d1d2, ci.40a.s1d1d2)
+mean.40a.ci(m.40a.s3d1d2, ci.40a.s3d1d2)
+
+#combine into table using "cbind"
+mig40a.tab.data<-cbind(n.40a.tot, m.40a.age, sd.40a.age, m.40a.height, sd.40a.height, m.40a.weight, sd.40a.weight, m.40a.bmi, sd.40a.bmi, m.40a.s1d1d2, sd.40a.s1d1d2, m.40a.s3d1d2, sd.40a.s3d1d2, m.40a.pub.compos, sd.40a.pub.compos)
+
+#convert to data frame and rename variables
+mig40a.tab.data<-as.data.frame(x=mig40a.tab.data)
+
+#for a reduced table of mean (sd), including composite age of puberty only
+rn <- names(m.40a.age)  #rownames
+cn <- c(c("N", "Age, y", "Height, cm", "Weight, cm", "BMI", "Waking, pg/mL", "Evening, pg/mL", "Recalled age at puberty, y")) #column names
+mig40a.tab.msd <- matrix(c(n.40a.tot, msd.40a.age, msd.40a.height, msd.40a.weight, msd.40a.bmi, msd.40a.s1d1d2, msd.40a.s3d1d2, msd.40a.pub.compos),5,8,dimnames=list(rn,cn))
+#reorder and rename of residence groups
+res.order <- c("Bangladeshi sedentees", "Adult migrants", "Child migrants", "Second generation migrants", "British European")
+mig40a.tab.msd <- mig40a.tab.msd[match(res.order, rn),]
+mig40a.tab.msd <- rbind(mig40a.tab.msd, msd.40a.all) 
+rownames(mig40a.tab.msd) <- c("Bangladeshi sedentees", "Adult migrants", "Child migrants", "Second generation migrants", "British European", "All groups")
+
+bhai40a.desc.tab.ht <- stargazer(mig40a.tab.msd, digits=1, out="bhai40a.desc.tab.html", summary=FALSE, type="html")
+
+
+#Table 1.1a SalT by residence: lapply both sampling variables and get summary of <40y
+res.2salt.40a.tab.ht <- stargazer(res.2salt.40a.res, 
+                                  title="Salivary testosterone by residence group, <40y age at recruitment", 
+                                  dep.var.caption  = "<em> sample time </em>", 
+                                  out="res.2salt.40a.tab.html", 
+                                  column.labels=c("Waking", "Evening"), 
+                                  covariate.labels=c("Constant", "Age(log)", "BMI", "Adult migrants", "Child migrants", "Second generation migrants", "British European"), 
+                                  notes ="all values are z-transformed SD units, age and testosterone also log transformed. Reference category: Bangladeshi sedentees", 
+                                  type="html", 
+                                  dep.var.labels="", 
+                                  star.cutoffs = c(0.05, 0.01, 0.001), 
+                                  report=('vc*ps'), 
+                                  ci= T, 
+                                  intercept.bottom = FALSE, 
+                                  single.row = TRUE, 
+                                  model.numbers=F
+)
+## for Wake and Bed samples YOM and 2NG salT is higher compared to SED, BMI also sig. covariate
+
+#for n by residence group
+summary(model.frame(res.2salt.40a.res$z.log.meanS1D1D2)$y)
+summary(model.frame(res.2salt.40a.res$z.log.meanS3D1D2)$y)
+
+#Table 1.2a Puberty by residence group:
+res.pub.40a.tab.ht <- stargazer(res.pub40a.res$z.pub.compos, 
+                                title="Recalled age at puberty by residence group, <40y age at recruitment", 
+                                out="res.pub.40a.tab.html",
+                                column.labels=c("Composite age at puberty"), 
+                                covariate.labels=c("Constant", "Age(log)", "Adult Migrants", "Child Migrants", "Second Generation Migrants", "British-born European"), 
+                                notes ="all values are z-transformed SD units, age also log transformed. Reference category: Bangladeshi Sedentees", 
+                                type="html", 
+                                dep.var.caption  = "<em> measure </em>", dep.var.labels="", 
+                                star.cutoffs = c(0.05, 0.01, 0.001), 
+                                report=('vc*ps'),
+                                ci= T, 
+                                intercept.bottom = FALSE, 
+                                model.numbers=F,  
+                                single.row = TRUE
+)
+#compared to sedentees, 2NG and EUR are both sig. earlier age of puberty in composite and all measures (besides voice for 2NG)
+
+#Table S1a. Post-hoc table <40y only
+# Table for export results of multiple comparison (post hoc Tukey)
+# Source: Modified from https://gist.github.com/cheuerde/3acc1879dc397a1adfb0 
+# x is a ghlt object
+
+table_glht <- function(x) {
+  pq <- summary(x)$test
+  mtests <- cbind(pq$coefficients, pq$sigma, pq$tstat, pq$pvalues)
+  error <- attr(pq$pvalues, "error")
+  pname <- switch(x$alternativ, less = paste("Pr(<", ifelse(x$df ==0, "z", "t"), ")", sep = ""), 
+                  greater = paste("Pr(>", ifelse(x$df == 0, "z", "t"), ")", sep = ""), two.sided = paste("Pr(>|",ifelse(x$df == 0, "z", "t"), "|)", sep = ""))
+  colnames(mtests) <- c("Estimate", "Std. Error", ifelse(x$df ==0, "z value", "t value"), pname)
+  return(mtests)
+  
+}
+
+#save Wake and Bed contrasts as a new object, then save an html version of new contrasts for both time points (rows 5:10) with stargazer
+res.salt1.40a.res.ph.tab <- table_glht(res.salt1.40a.res.ph)
+res.salt1.40a.res.ph.tab[5:10,]
+
+res.salt3.40a.res.ph.tab <- table_glht(res.salt3.40a.res.ph)
+res.salt3.40a.res.ph.tab[5:10,]
+
+res.salt.40a.ph.tab <- cbind(res.salt1.40a.res.ph.tab[5:10,], res.salt3.40a.res.ph.tab[5:10,])
+
+res.salt.40a.ph.tab.ht <- stargazer(res.salt.40a.ph.tab, digits=2, out="bhai.ph.40a.tab.html", summary=FALSE, type="html")
+
+
+nyu.amu.2salt.40a.res
+
+#tables of summary results of multiple imputations-----
+#Table Hypot 2.1.2.i within CHI only, age at migration "z.AgeMigUK" as continuous predictor who arrived before 19years "y19" regressions, with imputed BMI from package "mi"-------------
+#Waking
+#lowest and highest p values calcuated by four chains
+#minimum
+y19a.s1salt.mssbmi.ci.pmin <- apply(as.data.frame(cbind(y19a.2salt.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], y19a.2salt.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], y19a.2salt.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], y19a.2salt.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+y19a.s1salt.mssbmi.ci.pmax <- apply(as.data.frame(cbind(y19a.2salt.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], y19a.2salt.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], y19a.2salt.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], y19a.2salt.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+y19a.s1salt.mssbmi.tab.f <- as.data.frame(cbind(y19a.s1salt.mssbmi.ci.sres[,c(1,3:5)], y19a.s1salt.mssbmi.ci.pmin, y19a.s1salt.mssbmi.ci.pmax, y19a.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], confint(y19a.2salt.mssbmi.res$z.log.meanS1D1D2), y19a.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], y19a.2salt.sres$z.log.meanS1D1D2$coefficients[,1], confint(y19a.2salt.res$z.log.meanS1D1D2), y19a.2salt.sres$z.log.meanS1D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+y19a.s1salt.mssbmi.ci <- apply(round(y19a.s1salt.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+y19a.s1salt.mssbmi.ci.prg <- apply(round(y19a.s1salt.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+y19a.s1salt.mssbmi.95ci <- apply(round(y19a.s1salt.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+y19a.s1salt.95ci <- apply(round(y19a.s1salt.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+y19a.s1salt.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(y19a.s1salt.mssbmi.ci.sres[,1], 3), paste0("(", y19a.s1salt.mssbmi.ci,")")), 
+        y19a.s1salt.mssbmi.ci.prg, 
+        paste(round(y19a.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", y19a.s1salt.mssbmi.95ci,")")),
+        round(y19a.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], 2),
+        paste(round(y19a.2salt.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", y19a.s1salt.95ci,")")),
+        round(y19a.2salt.sres$z.log.meanS1D1D2$coefficients[,4],2)))
+
+#rename variables
+names(y19a.s1salt.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+y19a.s1salt.mssbmi.tab.ht <- stargazer(y19a.s1salt.mssbmi.tab, digits=2, out="y19a.s1salt.mssbmi.tab.html", summary=FALSE, type="html")
+
+#Evening
+#lowest and highest p values calcuated by four chains
+#minimum
+y19a.s3salt.mssbmi.ci.pmin <- apply(as.data.frame(cbind(y19a.2salt.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], y19a.2salt.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], y19a.2salt.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], y19a.2salt.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+y19a.s3salt.mssbmi.ci.pmax <- apply(as.data.frame(cbind(y19a.2salt.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], y19a.2salt.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], y19a.2salt.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], y19a.2salt.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+y19a.s3salt.mssbmi.tab.f <- as.data.frame(cbind(y19a.s3salt.mssbmi.ci.sres[,c(1,3:5)], y19a.s3salt.mssbmi.ci.pmin, y19a.s3salt.mssbmi.ci.pmax, y19a.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], confint(y19a.2salt.mssbmi.res$z.log.meanS3D1D2), y19a.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], y19a.2salt.sres$z.log.meanS3D1D2$coefficients[,1], confint(y19a.2salt.res$z.log.meanS3D1D2), y19a.2salt.sres$z.log.meanS3D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+y19a.s3salt.mssbmi.ci <- apply(round(y19a.s3salt.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+y19a.s3salt.mssbmi.ci.prg <- apply(round(y19a.s3salt.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+y19a.s3salt.mssbmi.95ci <- apply(round(y19a.s3salt.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+y19a.s3salt.95ci <- apply(round(y19a.s3salt.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+y19a.s3salt.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(y19a.s3salt.mssbmi.ci.sres[,1], 3), paste0("(", y19a.s3salt.mssbmi.ci,")")), 
+        y19a.s3salt.mssbmi.ci.prg, 
+        paste(round(y19a.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", y19a.s3salt.mssbmi.95ci,")")),
+        round(y19a.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], 2),
+        paste(round(y19a.2salt.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", y19a.s3salt.95ci,")")),
+        round(y19a.2salt.sres$z.log.meanS3D1D2$coefficients[,4],2)))
+
+#rename variables
+names(y19a.s3salt.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+y19a.s3salt.mssbmi.tab.ht <- stargazer(y19a.s3salt.mssbmi.tab, digits=2, out="y19a.s3salt.mssbmi.tab.html", summary=FALSE, type="html")
+
+#Table Hypot 2.2.2i age at migration "z.AgeMigUK" as continuous predictor with number of years in uk including ecological exposure: number of years in the UK "nyu" regressions in CHI under 19yo migs only with BMI imputed from package "mi"--------
+#Waking
+#lowest and highest p values calcuated by four chains
+#minimum
+nyu.s1salt.amu.mssbmi.ci.pmin <- apply(as.data.frame(cbind(nyu.2salt.amu.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+nyu.s1salt.amu.mssbmi.ci.pmax <- apply(as.data.frame(cbind(nyu.2salt.amu.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+nyu.s1salt.amu.mssbmi.tab.f <- as.data.frame(cbind(nyu.s1salt.amu.mssbmi.ci.sres[,c(1,3:5)], nyu.2salt.amu.mssbmi.ci.pmin, nyu.2salt.amu.mssbmi.ci.pmax, nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], confint(nyu.yom.amu.2salt.mssbmi.res$z.log.meanS1D1D2), nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], nyu.yom.amu.2salt.sres$z.log.meanS1D1D2$coefficients[,1], confint(nyu.yom.amu.2salt.res$z.log.meanS1D1D2), nyu.yom.amu.2salt.sres$z.log.meanS1D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+nyu.s1salt.amu.mssbmi.ci <- apply(round(nyu.s1salt.amu.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+nyu.s1salt.amu.mssbmi.ci.prg <- apply(round(nyu.s1salt.amu.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+nyu.s1salt.amu.mssbmi.95ci <- apply(round(nyu.s1salt.amu.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+nyu.s1salt.amu.95ci <- apply(round(nyu.s1salt.amu.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+nyu.s1salt.amu.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(nyu.s1salt.amu.mssbmi.ci.sres[,1], 3), paste0("(", nyu.s1salt.amu.mssbmi.ci,")")), 
+        nyu.s1salt.amu.mssbmi.ci.prg, 
+        paste(round(nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", nyu.s1salt.amu.mssbmi.95ci,")")),
+        round(nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], 2),
+        paste(round(nyu.yom.amu.2salt.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", nyu.s1salt.amu.95ci,")")),
+        round(nyu.yom.amu.2salt.sres$z.log.meanS1D1D2$coefficients[,4],2)))
+
+#rename variables
+names(nyu.s1salt.amu.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+nyu.s1salt.amu.mssbmi.tab.ht <- stargazer(nyu.s1salt.amu.mssbmi.tab, digits=2, out="nyu.s1salt.amu.mssbmi.tab.html", summary=FALSE, type="html")
+
+#Evening
+#lowest and highest p values calcuated by four chains
+#minimum
+nyu.s3salt.amu.mssbmi.ci.pmin <- apply(as.data.frame(cbind(nyu.2salt.amu.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+nyu.s3salt.amu.mssbmi.ci.pmax <- apply(as.data.frame(cbind(nyu.2salt.amu.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], nyu.2salt.amu.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+nyu.s3salt.amu.mssbmi.tab.f <- as.data.frame(cbind(nyu.s3salt.amu.mssbmi.ci.sres[,c(1,3:5)], nyu.s3salt.amu.mssbmi.ci.pmin, nyu.s3salt.amu.mssbmi.ci.pmax, nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], confint(nyu.yom.amu.2salt.mssbmi.res$z.log.meanS3D1D2), nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], nyu.yom.amu.2salt.sres$z.log.meanS3D1D2$coefficients[,1], confint(nyu.yom.amu.2salt.res$z.log.meanS3D1D2), nyu.yom.amu.2salt.sres$z.log.meanS3D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+nyu.s3salt.amu.mssbmi.ci <- apply(round(nyu.s3salt.amu.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+nyu.s3salt.amu.mssbmi.ci.prg <- apply(round(nyu.s3salt.amu.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+nyu.s3salt.amu.mssbmi.95ci <- apply(round(nyu.s3salt.amu.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+nyu.s3salt.amu.95ci <- apply(round(nyu.s3salt.amu.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+nyu.s3salt.amu.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(nyu.s3salt.amu.mssbmi.ci.sres[,1], 3), paste0("(", nyu.s3salt.amu.mssbmi.ci,")")), 
+        nyu.s3salt.amu.mssbmi.ci.prg, 
+        paste(round(nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", nyu.s3salt.amu.mssbmi.95ci,")")),
+        round(nyu.yom.amu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], 2),
+        paste(round(nyu.yom.amu.2salt.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", nyu.s3salt.amu.95ci,")")),
+        round(nyu.yom.amu.2salt.sres$z.log.meanS3D1D2$coefficients[,4],2)))
+
+#rename variables
+names(nyu.s3salt.amu.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+nyu.s3salt.amu.mssbmi.tab.ht <- stargazer(nyu.s3salt.amu.mssbmi.tab, digits=2, out="nyu.s3salt.amu.mssbmi.tab.html", summary=FALSE, type="html")
+
+#Table Hypot 2.3.2i SalT within CHI migs, migration before age 9 as compared to migration age 9-19 "age.8.19.mig" regression with age at recruitment and with imputed BMI from package "mi"-------
+#Waking
+#lowest and highest p values calcuated by four chains
+#minimum
+y19b.age.s1salt.mssbmi.ci.pmin <- apply(as.data.frame(cbind(y19b.age.2salt.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+y19b.age.s1salt.mssbmi.ci.pmax <- apply(as.data.frame(cbind(y19b.age.2salt.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+y19b.age.s1salt.mssbmi.tab.f <- as.data.frame(cbind(y19b.age.s1salt.mssbmi.ci.sres[,c(1,3:5)], y19b.age.s1salt.mssbmi.ci.pmin, y19b.age.s1salt.mssbmi.ci.pmax, y19b.age.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], confint(y19b.age.2salt.mssbmi.res$z.log.meanS1D1D2), y19b.age.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], y19b.age.2salt.sres$z.log.meanS1D1D2$coefficients[,1], confint(y19b.age.2salt.res$z.log.meanS1D1D2), y19b.age.2salt.sres$z.log.meanS1D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+y19b.age.s1salt.mssbmi.ci <- apply(round(y19b.age.s1salt.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+y19b.age.s1salt.mssbmi.ci.prg <- apply(round(y19b.age.s1salt.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+y19b.age.s1salt.mssbmi.95ci <- apply(round(y19b.age.s1salt.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+y19b.age.s1salt.95ci <- apply(round(y19b.age.s1salt.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+y19b.age.s1salt.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(y19b.age.s1salt.mssbmi.ci.sres[,1], 3), paste0("(", y19b.age.s1salt.mssbmi.ci,")")), 
+        y19b.age.s1salt.mssbmi.ci.prg, 
+        paste(round(y19b.age.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", y19b.age.s1salt.mssbmi.95ci,")")),
+        round(y19b.age.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], 2),
+        paste(round(y19b.age.2salt.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", y19b.age.s1salt.95ci,")")),
+        round(y19b.age.2salt.sres$z.log.meanS1D1D2$coefficients[,4],2)))
+
+#rename variables
+names(y19b.age.s1salt.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+y19b.age.s1salt.mssbmi.tab.ht <- stargazer(y19b.age.s1salt.mssbmi.tab, digits=2, out="y19b.age.s1salt.mssbmi.tab.html", summary=FALSE, type="html")
+
+#Evening
+#lowest and highest p values calcuated by four chains
+#minimum
+y19b.age.s3salt.mssbmi.ci.pmin <- apply(as.data.frame(cbind(y19b.age.2salt.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+y19b.age.s3salt.mssbmi.ci.pmax <- apply(as.data.frame(cbind(y19b.age.2salt.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], y19b.age.2salt.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+y19b.age.s3salt.mssbmi.tab.f <- as.data.frame(cbind(y19b.age.s3salt.mssbmi.ci.sres[,c(1,3:5)], y19b.age.s3salt.mssbmi.ci.pmin, y19b.age.s3salt.mssbmi.ci.pmax, y19b.age.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], confint(y19b.age.2salt.mssbmi.res$z.log.meanS3D1D2), y19b.age.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], y19b.age.2salt.sres$z.log.meanS3D1D2$coefficients[,1], confint(y19b.age.2salt.res$z.log.meanS3D1D2), y19b.age.2salt.sres$z.log.meanS3D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+y19b.age.s3salt.mssbmi.ci <- apply(round(y19b.age.s3salt.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+y19b.age.s3salt.mssbmi.ci.prg <- apply(round(y19b.age.s3salt.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+y19b.age.s3salt.mssbmi.95ci <- apply(round(y19b.age.s3salt.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+y19b.age.s3salt.95ci <- apply(round(y19b.age.s3salt.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+y19b.age.s3salt.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(y19b.age.s3salt.mssbmi.ci.sres[,1], 3), paste0("(", y19b.age.s3salt.mssbmi.ci,")")), 
+        y19b.age.s3salt.mssbmi.ci.prg, 
+        paste(round(y19b.age.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", y19b.age.s3salt.mssbmi.95ci,")")),
+        round(y19b.age.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], 2),
+        paste(round(y19b.age.2salt.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", y19b.age.s3salt.95ci,")")),
+        round(y19b.age.2salt.sres$z.log.meanS3D1D2$coefficients[,4],2)))
+
+#rename variables
+names(y19b.age.s3salt.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+y19b.age.s3salt.mssbmi.tab.ht <- stargazer(y19b.age.s3salt.mssbmi.tab, digits=2, out="y19b.age.s3salt.mssbmi.tab.html", summary=FALSE, type="html")
+
+
+#Table Hypot 2.4.2i SalT within CHI migs, migration before age 9 as compared to migration age 9-19 "age.8.19.mig" regression including ecological exposure: number of years in the UK "nyu" regressions in CHI under 19yo migs only with imputed BMI-----
+#Waking
+#lowest and highest p values calcuated by four chains
+#minimum
+y19c.nyu.s1salt.mssbmi.ci.pmin <- apply(as.data.frame(cbind(y19c.nyu.2salt.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+y19c.nyu.s1salt.mssbmi.ci.pmax <- apply(as.data.frame(cbind(y19c.nyu.2salt.mssbmi.ci1.sres$z.log.meanS1D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci2.sres$z.log.meanS1D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci3.sres$z.log.meanS1D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci4.sres$z.log.meanS1D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+y19c.nyu.s1salt.mssbmi.tab.f <- as.data.frame(cbind(y19c.nyu.s1salt.mssbmi.ci.sres[,c(1,3:5)], y19c.nyu.s1salt.mssbmi.ci.pmin, y19c.nyu.s1salt.mssbmi.ci.pmax, y19c.nyu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], confint(y19c.nyu.2salt.mssbmi.res$z.log.meanS1D1D2), y19c.nyu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], y19c.nyu.2salt.sres$z.log.meanS1D1D2$coefficients[,1], confint(y19c.nyu.2salt.res$z.log.meanS1D1D2), y19c.nyu.2salt.sres$z.log.meanS1D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+y19c.nyu.s1salt.mssbmi.ci <- apply(round(y19c.nyu.s1salt.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+y19c.nyu.s1salt.mssbmi.ci.prg <- apply(round(y19c.nyu.s1salt.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+y19c.nyu.s1salt.mssbmi.95ci <- apply(round(y19c.nyu.s1salt.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+y19c.nyu.s1salt.95ci <- apply(round(y19c.nyu.s1salt.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+y19c.nyu.s1salt.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(y19c.nyu.s1salt.mssbmi.ci.sres[,1], 3), paste0("(", y19c.nyu.s1salt.mssbmi.ci,")")), 
+        y19c.nyu.s1salt.mssbmi.ci.prg, 
+        paste(round(y19c.nyu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", y19c.nyu.s1salt.mssbmi.95ci,")")),
+        round(y19c.nyu.2salt.mssbmi.sres$z.log.meanS1D1D2$coefficients[,4], 2),
+        paste(round(y19c.nyu.2salt.sres$z.log.meanS1D1D2$coefficients[,1], 3), paste0("(", y19c.nyu.s1salt.95ci,")")),
+        round(y19c.nyu.2salt.sres$z.log.meanS1D1D2$coefficients[,4],2)))
+
+#rename variables
+names(y19c.nyu.s1salt.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+y19c.nyu.s1salt.mssbmi.tab.ht <- stargazer(y19c.nyu.s1salt.mssbmi.tab, digits=2, out="y19c.nyu.s1salt.mssbmi.tab.html", summary=FALSE, type="html")
+
+#Evening
+#lowest and highest p values calcuated by four chains
+#minimum
+y19c.nyu.s3salt.mssbmi.ci.pmin <- apply(as.data.frame(cbind(y19c.nyu.2salt.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=min)
+#maximum
+y19c.nyu.s3salt.mssbmi.ci.pmax <- apply(as.data.frame(cbind(y19c.nyu.2salt.mssbmi.ci1.sres$z.log.meanS3D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci2.sres$z.log.meanS3D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci3.sres$z.log.meanS3D1D2$coefficients[,4], y19c.nyu.2salt.mssbmi.ci4.sres$z.log.meanS3D1D2$coefficients[,4])), 1, FUN=max)
+
+#create full data frame with comparative coefficients
+y19c.nyu.s3salt.mssbmi.tab.f <- as.data.frame(cbind(y19c.nyu.s3salt.mssbmi.ci.sres[,c(1,3:5)], y19c.nyu.s3salt.mssbmi.ci.pmin, y19c.nyu.s3salt.mssbmi.ci.pmax, y19c.nyu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], confint(y19c.nyu.2salt.mssbmi.res$z.log.meanS3D1D2), y19c.nyu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], y19c.nyu.2salt.sres$z.log.meanS3D1D2$coefficients[,1], confint(y19c.nyu.2salt.res$z.log.meanS3D1D2), y19c.nyu.2salt.sres$z.log.meanS3D1D2$coefficients[,4]))
+
+#collapse range values into single columns
+# create a new column of 95% CI for single collapsed column, then paste to coefficent
+y19c.nyu.s3salt.mssbmi.ci <- apply(round(y19c.nyu.s3salt.mssbmi.tab.f[ , 2:3], 3) , 1 , paste , collapse = ", " )
+y19c.nyu.s3salt.mssbmi.ci.prg <- apply(round(y19c.nyu.s3salt.mssbmi.tab.f[ , 5:6], 2) , 1 , paste , collapse = "-" )
+y19c.nyu.s3salt.mssbmi.95ci <- apply(round(y19c.nyu.s3salt.mssbmi.tab.f[ , 8:9], 3) , 1 , paste , collapse = ", " )
+y19c.nyu.s3salt.95ci <- apply(round(y19c.nyu.s3salt.mssbmi.tab.f[ , 12:13], 3) , 1 , paste , collapse = ", " )
+
+y19c.nyu.s3salt.mssbmi.tab <- as.data.frame(
+  cbind(paste(round(y19c.nyu.s3salt.mssbmi.ci.sres[,1], 3), paste0("(", y19c.nyu.s3salt.mssbmi.ci,")")), 
+        y19c.nyu.s3salt.mssbmi.ci.prg, 
+        paste(round(y19c.nyu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", y19c.nyu.s3salt.mssbmi.95ci,")")),
+        round(y19c.nyu.2salt.mssbmi.sres$z.log.meanS3D1D2$coefficients[,4], 2),
+        paste(round(y19c.nyu.2salt.sres$z.log.meanS3D1D2$coefficients[,1], 3), paste0("(", y19c.nyu.s3salt.95ci,")")),
+        round(y19c.nyu.2salt.sres$z.log.meanS3D1D2$coefficients[,4],2)))
+
+#rename variables
+names(y19c.nyu.s3salt.mssbmi.tab) <- c("Pooled MI estimate (95% CI)",  "p range", "Population mean imputed BMI estimate (95% CI)", "p", "Complete cases BMI estimate (95% CI)", "p")
+y19c.nyu.s3salt.mssbmi.tab.ht <- stargazer(y19c.nyu.s3salt.mssbmi.tab, digits=2, out="y19c.nyu.s3salt.mssbmi.tab.html", summary=FALSE, type="html")
