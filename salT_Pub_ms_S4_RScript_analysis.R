@@ -1,5 +1,5 @@
 #Supplemental section 4
-#R script for Manuscript: "Childhood ecology influences salivary testosterone and pubertal age of Bangladeshi UK migrant men", Magid, K. et.al. 2018
+#R script for Magid K., Chatterton RT, Ahamed FU, Bentley GR, "Childhood ecology influences salivary testosterone and pubertal age of Bangladeshi UK migrant men"
 
 #Packages used in analysis----------------------------------------------------------------------------------------------------------------------------
 library(multcomp)
@@ -1253,6 +1253,7 @@ ggplot(data = repro.data) +
                           labels=c("Child migrants", "Second generation migrants", "British European", "Adult migrants", "Bangladeshi sedentees")) +
   ylab("z-Testosterone (log)") +
   xlab("Age at recruitment, years")
+
 #supplemental figure 2. plot of age 8 data number of years in UK-------
 #from result: y19c.nyu.2salt.mssbmi.res
 
