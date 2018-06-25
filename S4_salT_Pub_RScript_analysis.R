@@ -1468,7 +1468,7 @@ mig.tab.data<-as.data.frame(x=mig.tab.data)
 
 #for a reduced table of mean (sd), including composite age of puberty only
 rn <- names(m.age)  #rownames
-cn <- c(c("N", "Age, y", "Height, cm", "Weight, cm", "BMI", "Waking, pg/mL", "Evening, pg/mL", "Recalled age at puberty, y")) #column names
+cn <- c(c("N", "Age, y", "Height, cm", "Weight, kg", "BMI", "Waking, pg/mL", "Evening, pg/mL", "Recalled age at puberty, y")) #column names
 mig.tab.msd <- matrix(c(n.tot, msd.age, msd.height, msd.weight, msd.bmi, msd.s1d1d2, msd.s3d1d2, msd.pub.compos),5,8,dimnames=list(rn,cn))
 #reorder and rename of residence groups
 res.order <- c("Bangladeshi sedentees", "Adult migrants", "Child migrants", "Second generation migrants", "British European")
@@ -2497,7 +2497,7 @@ mig40a.tab.data<-as.data.frame(x=mig40a.tab.data)
 
 #for a reduced table of mean (sd), including composite age of puberty only
 rn <- names(m.40a.age)  #rownames
-cn <- c(c("N", "Age, y", "Height, cm", "Weight, cm", "BMI", "Waking, pg/mL", "Evening, pg/mL", "Recalled age at puberty, y")) #column names
+cn <- c(c("N", "Age, y", "Height, cm", "Weight, kg", "BMI", "Waking, pg/mL", "Evening, pg/mL", "Recalled age at puberty, y")) #column names
 mig40a.tab.msd <- matrix(c(n.40a.tot, msd.40a.age, msd.40a.height, msd.40a.weight, msd.40a.bmi, msd.40a.s1d1d2, msd.40a.s3d1d2, msd.40a.pub.compos),5,8,dimnames=list(rn,cn))
 #reorder and rename of residence groups
 res.order <- c("Bangladeshi sedentees", "Adult migrants", "Child migrants", "Second generation migrants", "British European")
